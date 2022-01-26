@@ -25,8 +25,7 @@ class Tracker:
       for i in range(len(self.combatants)): 
         frame_name = "frame_"+self.combatants[i]['name']
         self.left_column.children[frame_name].destroy()
-        
-      self.combatants = characters
+      self.combatants = [*characters]
       create_character_frames(self.combatants)
 
     self.root = tk.Tk()
@@ -65,7 +64,7 @@ class Tracker:
     mod_select.grid(row=len(self.combatants)+3, column=0,sticky=tk.S)
     #button
     add_new_char_button = tk.Button(self.root, text="Add New Character", command=lambda: add_new_combatant(new_char_name.get(), self.new_mod))
-    add_new_char_button.grid(row=len(characters)+4, column=0,sticky=tk.S)
+    add_new_char_button.grid(row=len(self.combatants)+4, column=0,sticky=tk.S)
     #button
 
     
