@@ -22,9 +22,9 @@ characters = [
 },
 {
   id: 3,
-  "name": "BBEG",
+  "name": "Krimbus",
   "modifier": 3,
   "result": 0,
-  "active": False
+  "active": True
 }
 ]
