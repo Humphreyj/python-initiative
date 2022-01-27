@@ -40,7 +40,8 @@ class Tracker:
       for i in range(len(self.combatants)): 
         frame_name = "frame_"+self.combatants[i]['name']
         self.left_column.children[frame_name].destroy()
-        self.right_column.children[frame_name].destroy()
+        if len(self.initiative):
+         self.right_column.children[frame_name].destroy()
       self.combatants = [*characters]
       create_character_frames(self.combatants)
       self.initiative = []
@@ -103,7 +104,7 @@ class Tracker:
         result_value = tk.Label(char_frame, text=current_character['result'], name='result_value')
         #button
         buttons.append(tk.Button(char_frame, text=str(current_character['active']), command=lambda c=i: toggle_active(c)))
-        delete_buttons.append(tk.Button(char_frame, text="Delete", command=lambda c=i: delete_character(c,char_frame)))
+        delete_buttons.append(tk.Button(char_frame, text="Delete", command=lambda c=i: delete_character(c,char_frame,frame_name)))
         #button
         
         result_value.grid(row=1,column=2)
@@ -115,15 +116,23 @@ class Tracker:
     create_character_frames(self.combatants)
     def update_character_frames(characters):
       for i in range(len(characters)):
-        current_character = characters[i]
-        frame_name = 'frame_' + current_character['name']
-        
-        self.left_column.children[frame_name].children['result_value']['text'] = current_character['result']
+        try:
+          current_character = characters[i]
+          frame_name = 'frame_' + current_character['name']
+          
+          self.left_column.children[frame_name].children['result_value']['text'] = current_character['result']
+        except:
+          print('No frame exists')
 
-    def delete_character(i,char_frame):
-      del self.combatants[i]
-      char_frame.destroy()
-      create_character_frames(self.combatants)
+    def delete_character(i,char_frame,frame_name):
+      try:
+        del self.combatants[i]
+        char_frame.destroy()
+        self.right_column.children[frame_name].destroy()
+        create_character_frames([*self.combatants])
+      except:
+        print('Something broke')
+      
     
     def add_new_combatant(name,mod):
       new_combatant = {
@@ -144,9 +153,9 @@ class Tracker:
         char_frame = tk.Frame(self.right_column, name=frame_name, width=300, bd=1, relief=SUNKEN)
         remove_buttons.append(tk.Button(char_frame, text="Delete", command=lambda c=i: remove_from_initiative(initiative[c]['name'],initiative)))
         if current_character['active']:
-          char_frame.grid(row=i+1,column=0,padx=10,pady=10, sticky=tk.W)
-          tk.Label(char_frame,text=current_character['name'], name= "result" + current_character['name']).grid(row=0, column=0)
-          remove_buttons[i].grid(row=0,column=1)
+          char_frame.grid(row=i+1,column=0,padx=5,pady=5, sticky=tk.W)
+          tk.Label(char_frame,text=current_character['name'], name= "result" + current_character['name']).grid(row=0, column=0,sticky=tk.W)
+          remove_buttons[i].grid(row=0,column=1,sticky=tk.E)
 
     def roll_dice(characters, sides):
       for character in characters:
