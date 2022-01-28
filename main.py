@@ -15,22 +15,19 @@ class Tracker:
 
     
     def remove_from_initiative(search_term,list):
-      
-      # return [i for i in range(len(list)) if i[key] == search_term]
       for i in range(len(list)):
         if list[i]['name'] == search_term:
           frame_name = "frame_" + list[i]['name']
           self.right_column.children[frame_name].destroy()
           del list[i] 
           self.initiative = [*list]
-          update_turn_order(self.initiative)
+      
+      update_turn_order(self.initiative)
 
 
     def toggle_active(i):
       self.combatants[i]['active'] = not self.combatants[i]['active']
       self.combatants[i]['result'] = 0
-      name = self.combatants[i]['name']
-      
       create_character_frames(self.combatants)
       
     def get_new_mod(selection):
@@ -39,21 +36,24 @@ class Tracker:
     def reset_combatants():
       for i in range(len(self.combatants)): 
         frame_name = "frame_"+self.combatants[i]['name']
-        self.left_column.children[frame_name].destroy()
-        if len(self.initiative):
+        
+        if frame_name in self.left_column.children:
+         self.left_column.children[frame_name].destroy()
+        if frame_name in self.right_column.children:
          self.right_column.children[frame_name].destroy()
-      self.combatants = [*characters]
-      create_character_frames(self.combatants)
       self.initiative = []
+      self.combatants = [*characters]
+      self.right_column.after(100, create_character_frames(self.combatants))
+      
       
 
     self.root = tk.Tk()
     self.root.geometry('600x600')
     self.root.title('Trackerbot v1')
 
-    self.toolbar = tk.Frame(self.root).grid(row=0,column=0,padx=10,pady=10)
-    reset_button = tk.Button(self.toolbar, text="Reset", width=6, command= reset_combatants)
-    reset_button.grid(row=0,column=0)
+    self.toolbar = tk.Frame(self.root, background="grey", width=300, height=50, borderwidth=0).grid(row=0,column=0)
+    reset_button = tk.Button(self.toolbar, text="Reset", bg='grey', width=4, command= reset_combatants)
+    reset_button.grid(row=0,column=0, sticky=tk.NW)
 
     self.left_column = tk.Frame(self.root,bd=2, relief=SUNKEN)
     self.left_column.grid(row=1, column=0,sticky=tk.NW,padx=10,pady=10)
@@ -74,23 +74,27 @@ class Tracker:
 
     self.add_character_menu = tk.Frame(self.root, bd=1,relief=SUNKEN)
     self.add_character_menu.grid(row=len(self.combatants)+2,column=0)
-    new_char_name = ttk.Entry(self.add_character_menu,textvariable=tk.StringVar())
-    new_char_name.grid(row=0, column=0,sticky=tk.W)
+    tk.Label(self.add_character_menu, text="New Character Name").grid(row=0,column=0)
+    self.new_char_name = ttk.Entry(self.add_character_menu,textvariable=tk.StringVar())
+    self.new_char_name.grid(row=1, column=0,sticky=tk.W)
     placeholder_mod = tk.StringVar(self.root)
-    placeholder_mod.set("Modifier")
+    placeholder_mod.set(0)
+    tk.Label(self.add_character_menu, text="Dex Mod").grid(row=0,column=1)
     mod_select = tk.OptionMenu(self.add_character_menu,placeholder_mod,*self.mods,command=get_new_mod)
-    mod_select.grid(row=0, column=1)
+    mod_select.grid(row=1, column=1)
+    
     #add character button
-    add_new_char_button = tk.Button(self.add_character_menu, text="Add New Character", command=lambda: add_new_combatant(new_char_name.get(), self.new_mod))
-    add_new_char_button.grid(row=1, column=0,sticky=tk.W)
+    add_new_char_button = tk.Button(self.add_character_menu, text="Add Character", command=lambda: add_new_combatant(self.new_char_name.get(), self.new_mod))
+    add_new_char_button.grid(row=2, column=0,sticky=tk.S)
     #add character button
 
     
 
     def create_character_frames(characters):
+      
       buttons = []
       delete_buttons = []
-      for i in range(len(self.combatants)):
+      for i in range(len(characters)):
         current_character = characters[i]
         frame_name = 'frame_' + current_character['name']
         char_frame = tk.Frame(self.left_column, name=frame_name)
@@ -128,7 +132,8 @@ class Tracker:
       try:
         del self.combatants[i]
         char_frame.destroy()
-        self.right_column.children[frame_name].destroy()
+        if frame_name in self.right_column.children:
+          self.right_column.children[frame_name].destroy()
         create_character_frames([*self.combatants])
       except:
         print('Something broke')
@@ -143,6 +148,7 @@ class Tracker:
         "active": True
       }
       self.combatants.append(new_combatant)
+      self.new_char_name.delete(0,"end")
       create_character_frames(self.combatants)
     
     def update_turn_order(initiative):
@@ -161,6 +167,7 @@ class Tracker:
       for character in characters:
         if character['active']:
           modifier = character['modifier']
+          
           roll = random.randint(1,sides)
           result = roll + int(modifier)
           character['result'] = result
