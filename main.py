@@ -137,7 +137,8 @@ class Tracker:
         def delete_character(i, char_frame, frame_name):
             try:
                 del self.combatants[i]
-                char_frame.destroy()
+                if frame_name in self.left_column.children:
+                    self.left_column.children[frame_name].destroy()
                 if frame_name in self.right_column.children:
                     self.right_column.children[frame_name].destroy()
                 create_character_frames([*self.combatants])
