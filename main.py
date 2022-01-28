@@ -15,12 +15,13 @@ class Tracker:
         self.initiative = []
 
         def remove_from_initiative(search_term, list):
-            for i in range(len(list)):
-                if list[i]['name'] == search_term:
-                    frame_name = "frame_" + list[i]['name']
+            list_copy = list.copy()
+            for i, character in enumerate(list_copy): 
+                if character['name'] == search_term:
+                    frame_name = "frame_" + character['name']
                     self.right_column.children[frame_name].destroy()
-                    del list[i]
-                    self.initiative = [*list]
+                    del list_copy[i]
+                    self.initiative = [*list_copy]
 
             update_turn_order(self.initiative)
 
@@ -34,6 +35,7 @@ class Tracker:
 
         def reset_combatants():
             for i in range(len(self.combatants)):
+                self.combatants[i]['result'] = 0
                 frame_name = "frame_"+self.combatants[i]['name']
 
                 if frame_name in self.left_column.children:
@@ -44,16 +46,19 @@ class Tracker:
             self.combatants = [*characters]
             self.right_column.after(
                 100, create_character_frames(self.combatants))
+            
 
         self.root = tk.Tk()
         self.root.geometry('600x600')
         self.root.title('Trackerbot v1')
 
-        self.toolbar = tk.Frame(self.root, background="grey",
+        #toolbar
+        self.toolbar = tk.Frame(self.root,
                                 width=300, height=50, borderwidth=0).grid(row=0, column=0)
         reset_button = tk.Button(
             self.toolbar, text="Reset", bg='grey', width=4, command=reset_combatants)
         reset_button.grid(row=0, column=0, sticky=tk.NW)
+        #toolbar
 
         self.left_column = tk.Frame(self.root, bd=2, relief=SUNKEN)
         self.left_column.grid(row=1, column=0, sticky=tk.NW, padx=10, pady=10)
@@ -70,7 +75,8 @@ class Tracker:
         roll_button.grid(row=len(self.combatants)+1, column=0, sticky=tk.S)
         # roll button
 
-        self.add_character_menu = tk.Frame(self.root, bd=1, relief=SUNKEN)
+        #add new character
+        self.add_character_menu = tk.Frame(self.root, bd=1, relief=SUNKEN, width=300,padx=10, pady=10)
         self.add_character_menu.grid(row=len(self.combatants)+2, column=0)
         tk.Label(self.add_character_menu,
                  text="New Character Name").grid(row=0, column=0)
@@ -89,7 +95,7 @@ class Tracker:
                                         command=lambda: add_new_combatant(self.new_char_name.get(), self.new_mod))
         add_new_char_button.grid(row=2, column=0, sticky=tk.S)
         # add character button
-
+        #add new character
         def create_character_frames(characters):
 
             buttons = []
@@ -113,7 +119,7 @@ class Tracker:
                 buttons.append(tk.Button(char_frame, text=str(
                     current_character['active']), command=lambda c=i: toggle_active(c)))
                 delete_buttons.append(tk.Button(
-                    char_frame, text="Delete", command=lambda c=i: delete_character(c, char_frame, frame_name)))
+                    char_frame, text="Delete", command=lambda c=i: delete_character(c,frame_name)))
                 # button
 
                 result_value.grid(row=1, column=2)
@@ -125,26 +131,25 @@ class Tracker:
         create_character_frames(self.combatants)
 
         def update_character_frames(characters):
-            for i in range(len(characters)):
+            for character in characters:
                 try:
-                    current_character = characters[i]
-                    frame_name = 'frame_' + current_character['name']
+                    frame_name = 'frame_' + character['name']
 
-                    self.left_column.children[frame_name].children['result_value']['text'] = current_character['result']
+                    self.left_column.children[frame_name].children['result_value']['text'] = character['result']
                 except:
                     print('No frame exists')
 
-        def delete_character(i, char_frame, frame_name):
+        def delete_character(i,frame_name):
             try:
+                
+                self.left_column.children[frame_name].destroy()
                 del self.combatants[i]
-                if frame_name in self.left_column.children:
-                    self.left_column.children[frame_name].destroy()
                 if frame_name in self.right_column.children:
                     self.right_column.children[frame_name].destroy()
                 create_character_frames([*self.combatants])
             except:
-                print('Something broke')
-
+                print('Something broke when deleting character.')
+            
         def add_new_combatant(name, mod):
             new_combatant = {
                 id: len(characters),
@@ -153,9 +158,14 @@ class Tracker:
                 "result": 0,
                 "active": True
             }
-            self.combatants.append(new_combatant)
-            self.new_char_name.delete(0, "end")
-            create_character_frames(self.combatants)
+            if name:
+                self.combatants.append(new_combatant)
+                self.new_char_name.delete(0, "end")
+                create_character_frames(self.combatants)
+            else:
+                self.new_char_name.insert(0,"You need to enter a name")
+                # time.sleep(1.5)
+                self.new_char_name.after(1500,self.new_char_name.delete(0, "end"))
 
         def update_turn_order(initiative):
             remove_buttons = []
@@ -193,34 +203,30 @@ class Tracker:
             initiative_copy = self.initiative.copy()
             for i, item in enumerate(initiative_copy):
                 
-                
                 if last['result'] == self.initiative[i]["result"]:
-                    print('There is a tie between ' +
-                        last['name'] + ' and ' + self.initiative[i]['name'])
+                    # print('There is a tie between ' +
+                    #     last['name'] + ' and ' + self.initiative[i]['name'])
                     last_result = random.randint(
                         1, sides) + last['modifier']
                     time.sleep(0.25)
                     current_result = random.randint(
                         1, sides) + self.initiative[i]['modifier']
-                    print(last['name'], last_result, item['name'],
-                        current_result)
+                    # print(last['name'], last_result, item['name'],
+                    #     current_result)
                     
                     if last_result > current_result:
-                        print(last['name'] + " wins the tie")
+                        print(last['name'] + " (last) wins the tie")
                         try:
-                            initiative_copy[i], initiative_copy[i+1] = self.initiative[i+1], self.initiative[i]
-                            
-                        except:
-                            print("problem swapping homies.")
+                            initiative_copy[i+1], initiative_copy[i] = initiative_copy[i+1], initiative_copy[i]
+                        except Exception as e:
+                            print("problem swapping homies when last wins." + "\n" +str(e))
                             
                     else:
                         print(self.initiative[i]['name'] + " wins the tie")
                         try:
-                            
-                            initiative_copy[i-1], initiative_copy[i] = self.initiative[i], self.initiative[i-1]
-                           
-                        except:
-                            print('There was a problem swapping homies.')
+                             initiative_copy[i-1], initiative_copy[i] = initiative_copy[i], initiative_copy[i-1]
+                        except Exception as e:
+                            print('There was a problem swapping homies.'+ "\n" + str(e))
                 else:
                     last = item
             self.initiative = initiative_copy
