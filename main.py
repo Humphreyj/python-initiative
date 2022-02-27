@@ -14,6 +14,39 @@ class Tracker:
                      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
         self.initiative = []
 
+        def create_character_frames(characters):
+
+            buttons = []
+            delete_buttons = []
+            
+            for i in range(len(characters)):
+                current_character = characters[i]
+                frame_name = 'frame_' + current_character['name']
+                char_frame = tk.Frame(self.left_column, name=frame_name)
+
+                tk.Label(char_frame, text="Name").grid(row=0, column=0)
+                tk.Label(char_frame, text=current_character['name']).grid(
+                    row=1, column=0)
+                tk.Label(char_frame, text="Modifier").grid(row=0, column=1)
+                tk.Label(char_frame, text=current_character['modifier']).grid(
+                    row=1, column=1)
+                tk.Label(char_frame, text="Result").grid(row=0, column=2)
+                tk.Label(char_frame, text="Active").grid(row=0, column=3)
+                result_value = tk.Label(
+                    char_frame, text=current_character['result'], name='result_value')
+                # button
+                buttons.append(tk.Button(char_frame, text=str(
+                    current_character['active']), command=lambda c=i: toggle_active(c)))
+                delete_buttons.append(tk.Button(
+                    char_frame, text="Delete", command=lambda c=i: delete_character(c,frame_name)))
+                # button
+
+                result_value.grid(row=1, column=2)
+
+                buttons[i].grid(row=1, column=3)
+                delete_buttons[i].grid(row=1, column=4)
+                char_frame.grid(row=i+1, column=0)
+
         def remove_from_initiative(search_term, list):
             list_copy = list.copy()
             for i, character in enumerate(list_copy): 
@@ -23,7 +56,7 @@ class Tracker:
                     del list_copy[i]
                     self.initiative = [*list_copy]
 
-            update_turn_order(self.initiative)
+            update_turn_order([*self.initiative])
 
         def toggle_active(i):
             self.combatants[i]['active'] = not self.combatants[i]['active']
@@ -53,11 +86,18 @@ class Tracker:
         self.root.title('Trackerbot v1')
 
         #toolbar
-        self.toolbar = tk.Frame(self.root,
-                                width=300, height=50, borderwidth=0).grid(row=0, column=0)
+        self.toolbar = tk.Frame(self.root, bd=1, relief=SUNKEN).grid(row=0, column=0)
+        #reset characters button                        
         reset_button = tk.Button(
-            self.toolbar, text="Reset", bg='grey', width=4, command=reset_combatants)
-        reset_button.grid(row=0, column=0, sticky=tk.NW)
+            self.toolbar, text="Reset Characters", bg='grey', command=reset_combatants)
+        reset_button.grid(row=0, column=1, sticky=tk.NW)
+        #reset characters button
+
+        #edit characters button
+        reset_button = tk.Button(
+            self.toolbar, text="Edit Characters", bg='grey', command=reset_combatants)
+        reset_button.grid(row=0, column=0, sticky=tk.W)
+        #edit characters button
         #toolbar
 
         self.left_column = tk.Frame(self.root, bd=2, relief=SUNKEN)
@@ -67,7 +107,7 @@ class Tracker:
         self.right_column.grid(row=1, column=1, sticky=tk.NE, padx=10, pady=10)
 
         header_right = tk.Label(self.right_column, text='Turn Order')
-        header_right.grid(row=0, column=0, sticky=tk.NW)
+        header_right.grid(row=0, column=0, sticky=tk.W)
 
         # roll button
         roll_button = tk.Button(
@@ -96,37 +136,7 @@ class Tracker:
         add_new_char_button.grid(row=2, column=0, sticky=tk.S)
         # add character button
         #add new character
-        def create_character_frames(characters):
 
-            buttons = []
-            delete_buttons = []
-            for i in range(len(characters)):
-                current_character = characters[i]
-                frame_name = 'frame_' + current_character['name']
-                char_frame = tk.Frame(self.left_column, name=frame_name)
-
-                tk.Label(char_frame, text="Name").grid(row=0, column=0)
-                tk.Label(char_frame, text=current_character['name']).grid(
-                    row=1, column=0)
-                tk.Label(char_frame, text="Modifier").grid(row=0, column=1)
-                tk.Label(char_frame, text=current_character['modifier']).grid(
-                    row=1, column=1)
-                tk.Label(char_frame, text="Result").grid(row=0, column=2)
-                tk.Label(char_frame, text="Active").grid(row=0, column=3)
-                result_value = tk.Label(
-                    char_frame, text=current_character['result'], name='result_value')
-                # button
-                buttons.append(tk.Button(char_frame, text=str(
-                    current_character['active']), command=lambda c=i: toggle_active(c)))
-                delete_buttons.append(tk.Button(
-                    char_frame, text="Delete", command=lambda c=i: delete_character(c,frame_name)))
-                # button
-
-                result_value.grid(row=1, column=2)
-
-                buttons[i].grid(row=1, column=3)
-                delete_buttons[i].grid(row=1, column=4)
-                char_frame.grid(row=i+1, column=0)
 
         create_character_frames(self.combatants)
 
